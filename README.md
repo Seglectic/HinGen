@@ -2,6 +2,8 @@
 
 A browser-based generator for parametric, print-in-place butt hinges. Set the leaf size, thickness, knuckles, clearance and screw holes, then download an STL.
 
+**Live:** [seglectic.com/HinGen](https://www.seglectic.com/HinGen/)
+
 Everything runs locally in your browser. The geometry is built with [Manifold](https://github.com/elalish/manifold) (WebAssembly) in a Web Worker, and nothing is uploaded. It's a static site, so it works on GitHub Pages, any static file server, or offline.
 
 ## Using it
