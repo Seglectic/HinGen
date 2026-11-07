@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>HinGen</title>
-  <meta name="description" content="Parametric print-in-place hinge generator. OpenSCAD runs in your browser; nothing is uploaded.">
+  <meta name="description" content="Parametric print-in-place hinge generator. Runs entirely in your browser.">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='2' y='9' width='12' height='14' rx='2' fill='%23f2a33a'/><rect x='18' y='9' width='12' height='14' rx='2' fill='%23f2a33a'/><rect x='13' y='6' width='6' height='20' rx='3' fill='%23ffd28a'/></svg>">
   <link rel="stylesheet" href="style.css">
   <script type="importmap">
@@ -22,8 +22,8 @@
     </header>
     <form id="form" autocomplete="off"></form>
     <footer>
-      <p>Renders locally with <a href="https://openscad.org">OpenSCAD</a> (WebAssembly). Nothing is uploaded.</p>
-      <p>Hinge model: <a href="https://www.thingiverse.com/thing:2187167">Parametric Butt Hinge</a> by Rohin Gosling, CC BY.</p>
+      <p>Built in your browser with <a href="https://github.com/elalish/manifold">Manifold</a>. Nothing is uploaded.</p>
+      <p>Inspired by Rohin Gosling's <a href="https://www.thingiverse.com/thing:2187167">Parametric Butt Hinge</a>.</p>
       <p><a href="https://github.com/Seglectic/HinGen">Source on GitHub</a></p>
     </footer>
   </aside>
@@ -31,18 +31,16 @@
   <main id="stage">
     <canvas id="view"></canvas>
     <div id="hud">
-      <div id="status"><span class="dot"></span><span id="status-text">Loading OpenSCAD…</span></div>
+      <div id="status"><span class="dot"></span><span id="status-text">Loading…</span></div>
+      <div id="pose" hidden><span id="pose-text"></span><button id="btn-flat" type="button">Flatten</button></div>
       <div id="dims"></div>
     </div>
+    <div id="tip">Drag a leaf to swing it on the pin · drag empty space to orbit</div>
     <div id="actions">
       <button id="btn-link" type="button" title="Copy a link with these settings">Copy link</button>
       <button id="btn-reset" type="button">Reset</button>
       <button id="btn-dl" type="button" class="primary" disabled>Download STL</button>
     </div>
-    <details id="logbox">
-      <summary>OpenSCAD log</summary>
-      <pre id="log"></pre>
-    </details>
   </main>
 
   <script type="module" src="app.js"></script>

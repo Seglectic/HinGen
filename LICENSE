@@ -21,4 +21,4 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ---
-models/ and vendor/ are third-party and carry their own licences; see README.md.
+vendor/ is third-party and carries its own licences; see README.md.

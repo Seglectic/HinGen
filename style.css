@@ -90,6 +90,39 @@ select {
 #status.err { color: var(--bad); }
 @keyframes pulse { from { opacity: .35; } to { opacity: 1; } }
 #dims:empty { display: none; }
+#hud { flex-wrap: wrap; }
+#pose { display: flex; align-items: center; gap: 10px; pointer-events: auto;
+  background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--accent); border-radius: 7px;
+  padding: 4px 4px 4px 10px; font: 12.5px var(--mono); color: var(--accent-2); margin-right: auto; }
+#pose[hidden] { display: none; }
+#pose button { padding: 3px 9px; font-size: 12px; }
+#tip { position: absolute; left: 16px; bottom: 22px; color: var(--muted); font: 12px var(--mono); pointer-events: none; }
+
+/* hole layout editor */
+.hole-editor { margin-top: 10px; }
+.hole-editor.disabled { opacity: .4; pointer-events: none; }
+.he-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; font-size: 12.5px; }
+.he-mirror { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.he-mirror input { accent-color: var(--accent); margin: 0; }
+.he-mode { color: var(--muted); font: 11px var(--mono); margin-left: auto; }
+.he-reset { padding: 3px 8px; font-size: 11.5px; }
+.he-reset[hidden] { display: none; }
+.he-svg { width: 100%; max-height: 300px; display: block; background: var(--bg); border: 1px solid var(--line); border-radius: 7px; touch-action: none; user-select: none; }
+.he-leaf { fill: color-mix(in srgb, var(--accent) 22%, var(--panel-2)); stroke: var(--accent); cursor: crosshair; }
+.he-leaf.off { fill: var(--panel-2); stroke: var(--line); stroke-dasharray: 1 1; }
+.he-knuckle { stroke: var(--bg); pointer-events: none; }
+.he-knuckle.f { fill: var(--accent-2); }
+.he-knuckle.m { fill: #b8741f; }
+.he-axis { stroke: var(--bg); stroke-dasharray: 0.6 0.6; pointer-events: none; }
+.he-hole { cursor: grab; }
+.he-hole .head { fill: var(--panel); stroke: var(--accent-2); }
+.he-hole .thru { fill: var(--bg); }
+.he-hole .grab { fill: transparent; }
+.he-hole:hover .head { stroke: #fff; fill: var(--panel-2); }
+.he-hole.bad .head { stroke: var(--bad); fill: color-mix(in srgb, var(--bad) 25%, var(--panel)); }
+.he-caption { display: flex; justify-content: space-between; color: var(--muted); font: 11px var(--mono); margin-top: 4px; }
+.he-caption .he-count { color: var(--text); }
+.hole-editor .help { color: var(--muted); font-size: 11.5px; line-height: 1.35; margin-top: 4px; }
 #dims b { color: var(--accent-2); font-weight: 600; }
 
 #actions { position: absolute; right: 16px; bottom: 16px; display: flex; gap: 8px; }
@@ -102,18 +135,12 @@ button.primary { background: var(--accent); color: #1b1408; border-color: var(--
 button.primary:hover:not(:disabled) { background: var(--accent-2); }
 button:disabled { opacity: .45; cursor: default; }
 
-#logbox { position: absolute; left: 16px; bottom: 16px; max-width: min(560px, calc(100% - 380px)); }
-#logbox summary { cursor: pointer; color: var(--muted); font: 12px var(--mono); }
-#log {
-  margin: 6px 0 0; max-height: 220px; overflow: auto; background: var(--panel); border: 1px solid var(--line);
-  border-radius: 7px; padding: 8px 10px; font: 11px/1.4 var(--mono); color: var(--muted); white-space: pre-wrap;
-}
 
 @media (max-width: 760px) {
   body { grid-template-columns: 1fr; grid-template-rows: 55vh auto; overflow: auto; }
   #stage { grid-row: 1; height: 55vh; }
   #panel { grid-row: 2; border-right: 0; overflow: visible; }
-  #logbox { display: none; }
+  #tip { display: none; }
   #actions { left: 16px; justify-content: flex-end; flex-wrap: wrap; }
   #hud { flex-direction: column; align-items: flex-start; }
 }
