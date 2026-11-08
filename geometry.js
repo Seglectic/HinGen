@@ -115,7 +115,13 @@ export function buildHinge(s) {
       for (let i = 1; i <= seg; i++) { const x = d + (xt - d) * i / seg; pts.push([x, a * (x - d) ** 2]); }
       return pts;
     }
-    let gussetSection = null;
+    let gussetSection = null, scoopSection = null;
+    // The other leaf's gusset, folded 180° shut, lands just below this leaf's top surface: (x, z) -> (x, -z).
+    // Cutting that shape (plus clearance) out lets the hinge close flat, as in Rohin's original.
+    const scoopY = (y0, y1) => {
+      scoopSection ??= t(t(new CrossSection([gussetProfile().map(([x, z]) => [x, -z]).reverse()])).offset(c, 'Round', 2, n));
+      return t(t(t(scoopSection.extrude(y1 - y0)).rotate([90, 0, 0])).translate([0, y1, 0]));
+    };
     const gussetY = (y0, y1) => {
       gussetSection ??= t(new CrossSection([gussetProfile()]));
       // extrude along +Z, then rotate +90° about X so the profile's y becomes world Z and the extrusion runs along -Y
@@ -130,7 +136,10 @@ export function buildHinge(s) {
           own.push(cylY(R, y0, y1));
           if (e.gw > 0) own.push(gussetY(y0, y1));
         }
-        else other.push(cylY(R + c, y0 - c, y1 + c));   // swing clearance around the other leaf's knuckles
+        else {
+          other.push(cylY(R + c, y0 - c, y1 + c));   // swing clearance around the other leaf's knuckles
+          if (e.gw > 0) other.push(scoopY(y0 - c, y1 + c));
+        }
       }
       let body = t(plate.subtract(t(Manifold.union(other))));
       body = t(Manifold.union([body, ...own]));
