@@ -89,6 +89,7 @@ function buildForm() {
         };
         box.addEventListener('input', () => fromBox(false));
         box.addEventListener('change', () => fromBox(true));
+        if (p.wire) bindWireframe(range, box);
         inputs[p.key] = { set: v => { box.value = v; range.value = v; } };
         row.append(el('div', { class: 'num' }, box, el('span', { class: 'unit' }, p.unit || '')), range);
       } else if (p.type === 'bool') {
@@ -179,6 +180,18 @@ function setLeafMesh(L, pos) {
   L.mesh = new THREE.Mesh(geo, L.mat);
   L.mesh.userData.leaf = L;
   L.pivot.add(L.mesh);
+}
+
+// Wireframe while a resolution control is being adjusted, so the tessellation change is visible.
+let wireTimer = null, wireHeld = false;
+function setWire(on) { for (const L of Object.values(leaves)) L.mat.wireframe = on; }
+function wireRelease(delay) { clearTimeout(wireTimer); wireTimer = setTimeout(() => setWire(false), delay); }
+function bindWireframe(range, box) {
+  range.addEventListener('pointerdown', () => { wireHeld = true; clearTimeout(wireTimer); setWire(true); });
+  window.addEventListener('pointerup', () => { if (wireHeld) { wireHeld = false; wireRelease(500); } });
+  const pulse = () => { setWire(true); if (!wireHeld) wireRelease(900); };
+  range.addEventListener('input', pulse);
+  box.addEventListener('input', pulse);
 }
 
 // Opening angle per leaf, degrees: 0 = flat, positive folds the leaf up over the knuckles.

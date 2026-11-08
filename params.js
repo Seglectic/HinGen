@@ -19,7 +19,8 @@ export const GROUPS = [
       { key: 'leaf_h', label: 'Leaf length (along pin)', unit: 'mm', type: 'num', min: 5, max: 120, hardMin: 2, hardMax: 2000, step: 0.5, def: 20 },
       { key: 'gauge', label: 'Leaf thickness', unit: 'mm', type: 'num', min: 1, max: 6, hardMin: 0.6, hardMax: 50, step: 0.1, def: 2,
         help: 'The knuckle is twice this in diameter.' },
-      { key: 'fillet', label: 'Rounded corners', type: 'bool', def: true },
+      { key: 'corner_r', label: 'Corner radius', unit: 'mm', type: 'num', min: 0, max: 20, hardMax: 500, step: 0.5, def: 4,
+        help: 'Outer corners of the leaves. 0 = square; capped at half the leaf length.' },
     ],
   },
   {
@@ -53,7 +54,7 @@ export const GROUPS = [
       { key: 'rows', label: 'Grid rows', type: 'num', min: 1, max: 12, hardMax: 100, step: 1, def: 2, showIf: s => s.fasteners, layout: true },
       { key: 'cols', label: 'Grid columns', type: 'num', min: 1, max: 6, hardMax: 50, step: 1, def: 2, showIf: s => s.fasteners, layout: true },
       { key: 'margin', label: 'Edge margin', unit: 'mm', type: 'num', min: 0, max: 15, hardMax: 200, step: 0.5, def: 2,
-        showIf: s => s.fasteners, layout: true, help: 'Grid inset from the leaf edges. Also sets the corner radius.' },
+        showIf: s => s.fasteners, layout: true, help: 'Grid inset from the leaf edges.' },
     ],
   },
   {
@@ -62,7 +63,7 @@ export const GROUPS = [
       { key: 'male', label: 'Plain leaf', type: 'bool', def: true },
       { key: 'female', label: 'Pin leaf', type: 'bool', def: true },
       { key: 'res', label: 'Smoothness', type: 'num', min: 24, max: 192, step: 8, def: 72,
-        help: 'Segments per circle.' },
+        wire: true, help: 'Segments per circle. Shows wireframe while you adjust it.' },
     ],
   },
 ];
@@ -92,7 +93,7 @@ export function effective(s) {
   if (s.head_type === 2) head = thread;
   const sink = s.head_type === 2 ? 0 : clip(s.sink, 0, g - 0.6);
   const margin = Math.max(0, s.margin);
-  const filletR = s.fillet ? Math.min(head / 2 + Math.max(margin, 1), H / 2, W - R - c) : 0;
+  const filletR = clip(s.corner_r, 0, Math.min(H / 2, W - R - c));
   const pinD = s.auto_pin ? g : clip(s.pin_d, 0.4, 2 * R - c - 0.8);
   let K = Math.max(3, Math.round(s.knuckles) | 1);
   while (K > 3 && (H - (K - 1) * c) / K < 1) K -= 2;   // keep knuckles at least 1 mm long
