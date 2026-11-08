@@ -14,6 +14,8 @@ Everything runs locally in your browser. The geometry is built with [Manifold](h
 - **Pose:** hover a leaf in the 3D view and drag it to swing it on the pin; the other leaf stays put. The STL is exported in the pose shown. Use *Flatten* to go back to flat.
 - The settings, including custom hole layouts, live in the URL hash. **Copy link** shares an exact configuration.
 - If a print-in-place hinge comes out fused, raise **Clearance**. A good starting point is 0.4 mm.
+- **Knuckle gussets** (linear, circular or parabolic) add a fillet between each knuckle and its leaf; screw holes keep clear of them.
+- **Undo / redo:** Ctrl/Cmd+Z, and Ctrl/Cmd+Shift+Z or Ctrl/Cmd+Y. A continuous slider or hole drag counts as one step. **Reset** also resets the camera.
 
 ## Running locally
 

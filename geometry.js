@@ -80,11 +80,56 @@ export function buildHinge(s) {
 
     const bore = () => cylY(pinD / 2 + c / 2, -H / 2 - 1, H / 2 + 1);
 
+    // Gusset cross-section in the (x = out from axis, z = up) plane, counter-clockwise.
+    // Fills the corner between the knuckle (radius R) and the leaf top (z = 0), ending at x = R + gw.
+    function gussetProfile() {
+      const d = R + e.gw, seg = Math.max(8, Math.round(n / 4));
+      if (s.gusset === 1) {                           // linear: tangent line from the knuckle to the leaf
+        const a = Math.acos(R / d);
+        return [[0, 0], [d, 0], [R * Math.cos(a), R * Math.sin(a)]];
+      }
+      if (s.gusset === 2) {                           // circular: fillet tangent to knuckle and leaf
+        const rho = (d * d - R * R) / (2 * R);
+        const end = Math.atan2(-rho, -d);
+        const pts = [[0, 0]];
+        for (let i = 0; i <= seg; i++) {
+          const ang = -Math.PI / 2 + (end + Math.PI / 2) * i / seg;
+          pts.push([d + rho * Math.cos(ang), rho + rho * Math.sin(ang)]);
+        }
+        return pts;
+      }
+      // parabolic: z = a (x - d)^2, vertex on the leaf at x = d, a chosen so it just touches the knuckle
+      const minDist = a => {
+        let best = Infinity, bx = 0;
+        for (let i = 0; i <= 400; i++) {
+          const x = d * i / 400, z = a * (x - d) ** 2, r = Math.hypot(x, z);
+          if (r < best) { best = r; bx = x; }
+        }
+        return [best, bx];
+      };
+      let lo = 0, hi = 1 / d;
+      while (minDist(hi)[0] < R) hi *= 2;
+      for (let i = 0; i < 50; i++) { const mid = (lo + hi) / 2; if (minDist(mid)[0] < R) lo = mid; else hi = mid; }
+      const a = hi, xt = minDist(a)[1];
+      const pts = [[0, 0], [d, 0]];
+      for (let i = 1; i <= seg; i++) { const x = d + (xt - d) * i / seg; pts.push([x, a * (x - d) ** 2]); }
+      return pts;
+    }
+    let gussetSection = null;
+    const gussetY = (y0, y1) => {
+      gussetSection ??= t(new CrossSection([gussetProfile()]));
+      // extrude along +Z, then rotate +90° about X so the profile's y becomes world Z and the extrusion runs along -Y
+      return t(t(t(gussetSection.extrude(y1 - y0)).rotate([90, 0, 0])).translate([0, y1, 0]));
+    };
+
     function leaf(ownParity, holeList) {
       const own = [], other = [];
       for (let i = 0; i < K; i++) {
         const [y0, y1] = knuckleSpan(e, i);
-        if (i % 2 === ownParity) own.push(cylY(R, y0, y1));
+        if (i % 2 === ownParity) {
+          own.push(cylY(R, y0, y1));
+          if (e.gw > 0) own.push(gussetY(y0, y1));
+        }
         else other.push(cylY(R + c, y0 - c, y1 + c));   // swing clearance around the other leaf's knuckles
       }
       let body = t(plate.subtract(t(Manifold.union(other))));

@@ -138,6 +138,11 @@ export function createHoleEditor(host, getState, commit) {
       world.append(svgEl('rect', { x: -e.R, y: y0, width: 2 * e.R, height: y1 - y0, rx: e.R * 0.25,
         class: `he-knuckle ${i % 2 ? 'm' : 'f'}`, 'stroke-width': sw }));
     }
+    if (e.gw > 0) for (let i = 0; i < e.K; i++) {
+      const [y0, y1] = knuckleSpan(e, i);
+      const sign = i % 2 ? -1 : 1;
+      world.append(svgEl('rect', { x: sign > 0 ? e.R : -e.R - e.gw, y: y0, width: e.gw, height: y1 - y0, class: 'he-gusset' }));
+    }
     world.append(svgEl('line', { x1: 0, y1: -e.H / 2 - pad / 2, x2: 0, y2: e.H / 2 + pad / 2, class: 'he-axis', 'stroke-width': sw * 0.8 }));
 
     if (!s.fasteners) { caption.querySelector('.he-count').textContent = 'No holes'; return; }

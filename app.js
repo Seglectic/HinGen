@@ -127,6 +127,7 @@ function changed() {
   saveState();
   holeEditor?.render();
   dirty = true;          // rebuilt on the next animation frame, so slider drags update live
+  recordSoon();
 }
 
 // ---------- viewer ----------
@@ -326,14 +327,14 @@ canvas.addEventListener('pointermove', evt => {
   L.angle = THREE.MathUtils.clamp(L.angle + delta, MIN_TOTAL - other.angle, MAX_TOTAL - other.angle);
   applyPose();
 });
-const endDrag = () => { if (!dragging) return; dragging = null; canvas.style.cursor = hovered ? 'grab' : ''; };
+const endDrag = () => { if (!dragging) return; dragging = null; canvas.style.cursor = hovered ? 'grab' : ''; recordNow(); };
 canvas.addEventListener('pointerup', endDrag);
 canvas.addEventListener('pointercancel', endDrag);
 canvas.addEventListener('pointerleave', () => { if (!dragging) setHover(null); });
 
 const poseChip = document.getElementById('pose');
 const poseText = document.getElementById('pose-text');
-document.getElementById('btn-flat').addEventListener('click', () => { leaves.f.angle = leaves.m.angle = 0; applyPose(); });
+document.getElementById('btn-flat').addEventListener('click', () => { leaves.f.angle = leaves.m.angle = 0; applyPose(); recordNow(); });
 
 renderer.setAnimationLoop(() => {
   if (dirty) rebuild();
@@ -391,7 +392,50 @@ document.getElementById('btn-reset').addEventListener('click', () => {
   state = defaults();
   for (const p of ALL) inputs[p.key]?.set(state[p.key]);
   leaves.f.angle = leaves.m.angle = 0;
+  framed = false;        // re-frame the camera on the next build
   changed();
+});
+
+// ---------- undo / redo ----------
+// Snapshots of settings + pose. Bursts of edits (slider drags, hole drags) collapse into one step.
+const snap = () => JSON.stringify({ s: state, fa: leaves.f.angle, ma: leaves.m.angle });
+const undoStack = [], redoStack = [];
+let committed = null, histTimer = null;
+const btnUndo = document.getElementById('btn-undo'), btnRedo = document.getElementById('btn-redo');
+function updateHistButtons() { btnUndo.disabled = !undoStack.length; btnRedo.disabled = !redoStack.length; }
+function recordNow() {
+  clearTimeout(histTimer); histTimer = null;
+  if (committed == null) return;
+  const cur = snap();
+  if (cur === committed) return;
+  undoStack.push(committed);
+  if (undoStack.length > 200) undoStack.shift();
+  committed = cur;
+  redoStack.length = 0;
+  updateHistButtons();
+}
+function recordSoon() { clearTimeout(histTimer); histTimer = setTimeout(recordNow, 400); }
+function restore(str) {
+  const o = JSON.parse(str);
+  state = o.s;
+  leaves.f.angle = o.fa; leaves.m.angle = o.ma;
+  committed = str;
+  for (const p of ALL) inputs[p.key]?.set(state[p.key]);
+  applyVisibility();
+  saveState();
+  holeEditor.render();
+  applyPose();
+  dirty = true;
+}
+function undo() { recordNow(); if (!undoStack.length) return; redoStack.push(committed); restore(undoStack.pop()); updateHistButtons(); }
+function redo() { recordNow(); if (!redoStack.length) return; undoStack.push(committed); restore(redoStack.pop()); updateHistButtons(); }
+btnUndo.addEventListener('click', undo);
+btnRedo.addEventListener('click', redo);
+window.addEventListener('keydown', e => {
+  if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === 'z') { e.preventDefault(); (e.shiftKey ? redo : undo)(); }
+  else if (k === 'y' && !e.shiftKey) { e.preventDefault(); redo(); }
 });
 
 document.getElementById('btn-link').addEventListener('click', async e => {
@@ -404,4 +448,5 @@ document.getElementById('btn-link').addEventListener('click', async e => {
 buildForm();
 applyVisibility();
 holeEditor.render();
+committed = snap();
 setStatus('busy', 'Loading geometry engine…');

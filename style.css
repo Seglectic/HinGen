@@ -113,6 +113,7 @@ select {
 .he-knuckle { stroke: var(--bg); pointer-events: none; }
 .he-knuckle.f { fill: var(--accent-2); }
 .he-knuckle.m { fill: #b8741f; }
+.he-gusset { fill: color-mix(in srgb, var(--accent-2) 35%, transparent); pointer-events: none; }
 .he-axis { stroke: var(--bg); stroke-dasharray: 0.6 0.6; pointer-events: none; }
 .he-hole { cursor: grab; }
 .he-hole .head { fill: var(--panel); stroke: var(--accent-2); }

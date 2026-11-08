@@ -34,6 +34,11 @@ export const GROUPS = [
       { key: 'auto_pin', label: 'Pin size = leaf thickness', type: 'bool', def: true },
       { key: 'pin_d', label: 'Pin diameter', unit: 'mm', type: 'num', min: 0.6, max: 10, hardMax: 100, step: 0.1, def: 2,
         showIf: s => !s.auto_pin, help: 'Limited so the knuckle keeps at least a 0.4 mm wall.' },
+      { key: 'gusset', label: 'Knuckle gussets', type: 'select', def: 0,
+        options: [[0, 'None'], [1, 'Linear'], [2, 'Circular'], [3, 'Parabolic']],
+        help: 'Fillets between each knuckle and its leaf for extra strength. Holes keep clear of them.' },
+      { key: 'gusset_w', label: 'Gusset length', unit: 'mm', type: 'num', min: 0.5, max: 15, hardMax: 200, step: 0.5, def: 3,
+        showIf: s => s.gusset > 0, help: 'How far the gusset runs out onto the leaf from the knuckle.' },
     ],
   },
   {
@@ -94,11 +99,13 @@ export function effective(s) {
   const sink = s.head_type === 2 ? 0 : clip(s.sink, 0, g - 0.6);
   const margin = Math.max(0, s.margin);
   const filletR = clip(s.corner_r, 0, Math.min(H / 2, W - R - c));
+  const gw = s.gusset > 0 ? clip(s.gusset_w, 0.3, W - R - c - 0.3) : 0;   // gusset reach past the knuckle
+  const keepOut = Math.max(c, gw);   // holes stay this far outside the knuckle
   const pinD = s.auto_pin ? g : clip(s.pin_d, 0.4, 2 * R - c - 0.8);
   let K = Math.max(3, Math.round(s.knuckles) | 1);
   while (K > 3 && (H - (K - 1) * c) / K < 1) K -= 2;   // keep knuckles at least 1 mm long
   const Lk = (H - (K - 1) * c) / K;
-  return { W, H, g, R, c, head, thread, sink, margin, filletR, pinD, K, Lk };
+  return { W, H, g, R, c, head, thread, sink, margin, filletR, pinD, K, Lk, gw, keepOut };
 }
 
 /** Knuckle i spans [y0, y1] along the pin. Even indices belong to the pin leaf. */
@@ -110,7 +117,7 @@ export function knuckleSpan(e, i) {
 /** Even grid of hole centres in leaf coords [u, v] (u from pin axis, v along pin). */
 export function gridHoles(s) {
   const e = effective(s);
-  let u0 = e.R + e.c + e.head / 2 + e.margin, u1 = e.W - e.head / 2 - e.margin;
+  let u0 = e.R + e.keepOut + e.head / 2 + e.margin, u1 = e.W - e.head / 2 - e.margin;
   const v1 = e.H / 2 - e.head / 2 - e.margin, v0 = -v1;
   const R = Math.max(1, Math.round(s.rows)), C = Math.max(1, Math.round(s.cols));
   const at = (a, b, i, n) => (n === 1 ? (a + b) / 2 : a + (b - a) * i / (n - 1));
@@ -124,7 +131,7 @@ export function gridHoles(s) {
 export function clampHole(s, [u, v]) {
   const e = effective(s);
   const rh = e.head / 2;
-  const uMin = e.R + e.c + rh, uMax = Math.max(uMin, e.W - rh);
+  const uMin = e.R + e.keepOut + rh, uMax = Math.max(uMin, e.W - rh);
   const vMax = Math.max(0, e.H / 2 - rh);
   u = clip(u, uMin, uMax); v = clip(v, -vMax, vMax);
   const r = e.filletR;
