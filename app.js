@@ -68,10 +68,24 @@ function setParam(p, v) {
   changed();
 }
 
+// Collapsed sections are a per-browser convenience.
+let collapsed = {};
+try { collapsed = JSON.parse(localStorage.getItem('hingen.collapsed') || '{}') || {}; } catch {}
+
 function buildForm() {
   form.replaceChildren();
   for (const g of GROUPS) {
-    const fs = el('fieldset', {}, el('legend', {}, g.title));
+    const fs = el('fieldset', {});
+    const toggle = el('button', { type: 'button', class: 'section-toggle', 'aria-expanded': 'true' }, el('span', { class: 'chev', 'aria-hidden': 'true' }), g.title);
+    fs.append(el('legend', {}, toggle));
+    const setOpen = open => {
+      fs.classList.toggle('collapsed', !open);
+      toggle.setAttribute('aria-expanded', String(open));
+      collapsed[g.title] = !open;
+      try { localStorage.setItem('hingen.collapsed', JSON.stringify(collapsed)); } catch {}
+    };
+    setOpen(!(g.title in collapsed ? collapsed[g.title] : !!g.collapsed));
+    toggle.addEventListener('click', () => setOpen(fs.classList.contains('collapsed')));
     for (const p of g.params) {
       const id = `p-${p.key}`;
       const row = el('div', { class: 'row' });

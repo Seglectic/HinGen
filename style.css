@@ -39,10 +39,17 @@ h1 { margin: 0; font: 700 22px/1 var(--mono); letter-spacing: 0.02em; color: var
 
 form { padding: 4px 0 8px; flex: 1; }
 fieldset { border: 0; border-bottom: 1px solid var(--line); margin: 0; padding: 12px 20px 14px; }
-legend {
-  float: left; width: 100%; padding: 0; margin-bottom: 8px;
-  font: 600 11px/1 var(--mono); text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted);
+legend { float: left; width: 100%; padding: 0; margin-bottom: 8px; }
+.section-toggle {
+  all: unset; box-sizing: border-box; width: 100%; display: flex; align-items: center; gap: 8px; cursor: pointer;
+  font: 600 11px/1 var(--mono); text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); padding: 2px 0;
 }
+.section-toggle:hover { color: var(--text); }
+.section-toggle:focus-visible { outline: 1px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+.chev { width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg) translate(-2px, -2px); transition: transform .15s; }
+fieldset.collapsed .chev { transform: rotate(-45deg); }
+fieldset.collapsed legend { margin-bottom: 0; }
+fieldset.collapsed > :not(legend) { display: none; }
 
 .row { clear: both; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 10px; padding: 5px 0; }
 .row[hidden] { display: none; }

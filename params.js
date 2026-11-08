@@ -24,24 +24,6 @@ export const GROUPS = [
     ],
   },
   {
-    title: 'Knuckles & pin',
-    params: [
-      { key: 'knuckles', label: 'Knuckle count', type: 'num', min: 3, max: 15, hardMax: 51, step: 2, def: 5 },
-      { key: 'clearance', label: 'Clearance', unit: 'mm', type: 'num', min: 0.1, max: 1, hardMin: 0.05, hardMax: 3, step: 0.05, def: 0.4,
-        help: 'Gap between moving parts. Raise it if the print fuses; lower it if it rattles.' },
-      { key: 'pin', label: 'Fused pin (print-in-place)', type: 'bool', def: true,
-        help: 'Off leaves an empty shaft for a metal pin or bolt.' },
-      { key: 'auto_pin', label: 'Pin size = leaf thickness', type: 'bool', def: true },
-      { key: 'pin_d', label: 'Pin diameter', unit: 'mm', type: 'num', min: 0.6, max: 10, hardMax: 100, step: 0.1, def: 2,
-        showIf: s => !s.auto_pin, help: 'Limited so the knuckle keeps at least a 0.4 mm wall.' },
-      { key: 'gusset', label: 'Knuckle gussets', type: 'select', def: 0,
-        options: [[0, 'None'], [1, 'Linear'], [2, 'Circular'], [3, 'Parabolic']],
-        help: 'Fillets between each knuckle and its leaf for extra strength. Holes keep clear of them.' },
-      { key: 'gusset_w', label: 'Gusset length', unit: 'mm', type: 'num', min: 0.5, max: 15, hardMax: 200, step: 0.5, def: 3,
-        showIf: s => s.gusset > 0, help: 'How far the gusset runs out onto the leaf from the knuckle.' },
-    ],
-  },
-  {
     title: 'Screw holes',
     editor: true,
     params: [
@@ -63,7 +45,27 @@ export const GROUPS = [
     ],
   },
   {
+    title: 'Knuckles & pin',
+    collapsed: true,   // closed by default
+    params: [
+      { key: 'knuckles', label: 'Knuckle count', type: 'num', min: 3, max: 15, hardMax: 51, step: 2, def: 5 },
+      { key: 'clearance', label: 'Clearance', unit: 'mm', type: 'num', min: 0.1, max: 1, hardMin: 0.05, hardMax: 3, step: 0.05, def: 0.4,
+        help: 'Gap between moving parts. Raise it if the print fuses; lower it if it rattles.' },
+      { key: 'pin', label: 'Fused pin (print-in-place)', type: 'bool', def: true,
+        help: 'Off leaves an empty shaft for a metal pin or bolt.' },
+      { key: 'auto_pin', label: 'Pin size = leaf thickness', type: 'bool', def: true },
+      { key: 'pin_d', label: 'Pin diameter', unit: 'mm', type: 'num', min: 0.6, max: 10, hardMax: 100, step: 0.1, def: 2,
+        showIf: s => !s.auto_pin, help: 'Limited so the knuckle keeps at least a 0.4 mm wall.' },
+      { key: 'gusset', label: 'Knuckle gussets', type: 'select', def: 1,
+        options: [[0, 'None'], [1, 'Linear'], [2, 'Circular'], [3, 'Parabolic']],
+        help: 'Fillets between each knuckle and its leaf for extra strength. Holes keep clear of them.' },
+      { key: 'gusset_w', label: 'Gusset length', unit: 'mm', type: 'num', min: 0.5, max: 15, hardMax: 200, step: 0.5, def: 1,
+        showIf: s => s.gusset > 0, help: 'How far the gusset runs out onto the leaf from the knuckle.' },
+    ],
+  },
+  {
     title: 'Output',
+    collapsed: true,   // closed by default
     params: [
       { key: 'male', label: 'Plain leaf', type: 'bool', def: true },
       { key: 'female', label: 'Pin leaf', type: 'bool', def: true },
