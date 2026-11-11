@@ -26,7 +26,7 @@ jobs:
       - name: Stage site
         run: |
           mkdir _site
-          cp -r index.html style.css app.js params.js geometry.js geometry-worker.js holes.js vendor .nojekyll _site/
+          cp -r index.html style.css app.js params.js geometry.js geometry-worker.js step.js step-worker.js holes.js vendor .nojekyll _site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site/

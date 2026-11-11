@@ -78,7 +78,7 @@ export function buildHinge(s) {
       return t(t(Manifold.union(parts)).translate([u, v, 0]));
     });
 
-    const bore = () => cylY(pinD / 2 + c / 2, -H / 2 - 1, H / 2 + 1);
+    const bore = () => cylY(pinD / 2 + c, -H / 2 - 1, H / 2 + 1);
 
     // Gusset cross-section in the (x = out from axis, z = up) plane, counter-clockwise.
     // Fills the corner between the knuckle (radius R) and the leaf top (z = 0), ending at x = R + gw.

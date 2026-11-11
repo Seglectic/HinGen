@@ -232,6 +232,7 @@ function updateDims() {
 const statusBox = document.getElementById('status');
 const statusText = document.getElementById('status-text');
 const btnDl = document.getElementById('btn-dl');
+const btnStep = document.getElementById('btn-step');
 function setStatus(kind, text) { statusBox.className = kind; statusText.textContent = text; }
 
 // Builds run in a worker; while one is in flight, further changes coalesce into a single follow-up build.
@@ -268,7 +269,7 @@ function applyBuild(res) {
   applyPose();
   const tris = ((res.f?.length || 0) + (res.m?.length || 0)) / 9;
   setStatus('ok', `Built in ${res.ms < 10 ? res.ms.toFixed(1) : Math.round(res.ms)} ms · ${tris.toLocaleString()} tris`);
-  btnDl.disabled = !(res.f || res.m);
+  btnDl.disabled = btnStep.disabled = !(res.f || res.m);
 }
 
 function resize() {
@@ -389,17 +390,42 @@ function exportStl() {
   return buf;
 }
 
-function fileName(s) {
+function fileName(s, ext = 'stl') {
   const n = v => String(+(+v).toFixed(2));
   const holes = !s.fasteners ? 'plain' : s.screw === 'custom' ? `holes${n(s.thread_d)}` : s.screw;
   const total = Math.round(leaves.f.angle + leaves.m.angle);
-  return `hinge_${n(s.leaf_w)}x${n(s.leaf_h)}_t${n(s.gauge)}_${holes}${total ? `_${total}deg` : ''}.stl`;
+  return `hinge_${n(s.leaf_w)}x${n(s.leaf_h)}_t${n(s.gauge)}_${holes}${total ? `_${total}deg` : ''}.${ext}`;
 }
 
-btnDl.addEventListener('click', () => {
-  const a = el('a', { href: URL.createObjectURL(new Blob([exportStl()], { type: 'model/stl' })), download: fileName(state) });
+function saveBlob(blob, name) {
+  const a = el('a', { href: URL.createObjectURL(blob), download: name });
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+btnDl.addEventListener('click', () => saveBlob(new Blob([exportStl()], { type: 'model/stl' }), fileName(state)));
+
+// STEP: exact B-rep rebuilt by OpenCascade in its own worker, created on first use.
+let stepWorker = null, stepSeq = 0;
+btnStep.addEventListener('click', () => {
+  // Same placement as the STL: viewer pose, then lifted so the lowest point sits on z = 0.
+  root.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(root, true);
+  const pose = { fa: leaves.f.angle, ma: leaves.m.angle, lift: root.position.z - box.min.z };
+  const name = fileName(state, 'step'), id = ++stepSeq;
+  const label = btnStep.textContent;
+  btnStep.disabled = true;
+  btnStep.textContent = stepWorker ? 'Building STEP…' : 'Loading CAD kernel…';
+  stepWorker ??= new Worker(new URL('./step-worker.js', import.meta.url), { type: 'module' });
+  const done = () => { btnStep.disabled = false; btnStep.textContent = label; };
+  stepWorker.onmessage = ({ data }) => {
+    if (data.id !== id) return;
+    done();
+    if (data.error) setStatus('err', `STEP export failed: ${data.error}`);
+    else saveBlob(data.blob, name);
+  };
+  stepWorker.onerror = err => { done(); setStatus('err', `STEP worker error: ${err.message || err}`); stepWorker = null; };
+  stepWorker.postMessage({ id, state: JSON.parse(JSON.stringify(state)), pose });
 });
 
 document.getElementById('btn-reset').addEventListener('click', () => {

@@ -103,7 +103,8 @@ export function effective(s) {
   const filletR = clip(s.corner_r, 0, Math.min(H / 2, W - R - c));
   const gw = s.gusset > 0 ? clip(s.gusset_w, 0.3, W - R - c - 0.3) : 0;   // gusset reach past the knuckle
   const keepOut = Math.max(c, gw);   // holes stay this far outside the knuckle
-  const pinD = s.auto_pin ? g : clip(s.pin_d, 0.4, 2 * R - c - 0.8);
+  // Bore = pin + c all round; keep at least a 0.4 mm knuckle wall outside it (auto pin too, for thin leaves).
+  const pinD = clip(s.auto_pin ? g : s.pin_d, 0.4, 2 * R - 2 * c - 0.8);
   let K = Math.max(3, Math.round(s.knuckles) | 1);
   while (K > 3 && (H - (K - 1) * c) / K < 1) K -= 2;   // keep knuckles at least 1 mm long
   const Lk = (H - (K - 1) * c) / K;

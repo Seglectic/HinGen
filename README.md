@@ -1,6 +1,6 @@
 # HinGen
 
-A browser-based generator for parametric, print-in-place butt hinges. Set the leaf size, thickness, knuckles, clearance and screw holes, then download an STL.
+A browser-based generator for parametric, print-in-place butt hinges. Set the leaf size, thickness, knuckles, clearance and screw holes, then download an STL or a STEP file.
 
 **Live:** [seglectic.com/HinGen](https://www.seglectic.com/HinGen/)
 
@@ -13,6 +13,7 @@ Everything runs locally in your browser. The geometry is built with [Manifold](h
 - **Hole layout:** the grid controls (rows, columns, margin) set a starting layout. In the editor you can drag holes, click a leaf to add one, and double-click to remove one. Overlapping holes turn red. Untick *Same on both leaves* to lay out each leaf separately.
 - **Pose:** hover a leaf in the 3D view and drag it to swing it on the pin; the other leaf stays put. The STL is exported in the pose shown. Use *Flatten* to go back to flat.
 - The settings, including custom hole layouts, live in the URL hash. **Copy link** shares an exact configuration.
+- **Download STEP** rebuilds the hinge as exact CAD solids (planes, cylinders, cones, a Bézier parabola for parabolic gussets) with OpenCascade and saves a two-part STEP assembly, *Pin leaf* and *Plain leaf*, in the pose shown. The CAD kernel (about 7 MB compressed) only loads the first time you click it. STEP can't carry the hinge joint in a way CAD tools import, so add a revolute joint on the knuckle bore yourself.
 - If a print-in-place hinge comes out fused, raise **Clearance**. A good starting point is 0.4 mm.
 - **Knuckle gussets** (linear, circular or parabolic) add a fillet between each knuckle and its leaf; screw holes keep clear of them.
 - **Undo / redo:** Ctrl/Cmd+Z, and Ctrl/Cmd+Shift+Z or Ctrl/Cmd+Y. A continuous slider or hole drag counts as one step. **Reset** also resets the camera.
@@ -33,12 +34,13 @@ python3 -m http.server 8765
 | `index.html`, `style.css`, `app.js` | UI, three.js viewer, leaf dragging, URL-hash state, STL export |
 | `params.js` | Parameter schema, derived dimensions, hole-grid and clamping logic |
 | `geometry.js` | Hinge construction with Manifold; `geometry-worker.js` runs it off the main thread |
+| `step.js`, `step-worker.js` | The same hinge as an exact B-rep via replicad/OpenCascade, exported as STEP. Mirror any shape change in `geometry.js` here |
 | `holes.js` | SVG hole layout editor |
-| `vendor/` | manifold-3d and three.js, copied by `tools/vendor.py` |
+| `vendor/` | manifold-3d, three.js and replicad + its OpenCascade build, copied by `tools/vendor.py` |
 
 ### Geometry
 
-The pin runs along +Y through the origin, and the leaves occupy z ∈ [−t, 0], where t is the leaf thickness. The knuckles have radius t, and there are an odd number of them. The pin leaf owns the even-numbered knuckles and the fused pin; the plain leaf is built the same way and mirrored. Each leaf has its plate cut back to radius t + clearance around the other leaf's knuckles, so the two leaves can swing past each other. The plain leaf's knuckles are bored to pin diameter + clearance.
+The pin runs along +Y through the origin, and the leaves occupy z ∈ [−t, 0], where t is the leaf thickness. The knuckles have radius t, and there are an odd number of them. The pin leaf owns the even-numbered knuckles and the fused pin; the plain leaf is built the same way and mirrored. Each leaf has its plate cut back to radius t + clearance around the other leaf's knuckles, so the two leaves can swing past each other. The plain leaf's knuckles are bored to the pin radius + clearance, so the pin has the same gap all round as every other moving surface.
 
 ### Updating vendored files
 
@@ -46,7 +48,10 @@ The pin runs along +Y through the origin, and the leaves occupy z ∈ [−t, 0],
 mkdir -p /tmp/mf /tmp/three
 curl -sL https://registry.npmjs.org/manifold-3d/-/manifold-3d-3.5.4.tgz | tar xz -C /tmp/mf
 curl -sL https://registry.npmjs.org/three/-/three-0.170.0.tgz | tar xz -C /tmp/three
-python3 tools/vendor.py /tmp/mf/package /tmp/three/package
+mkdir -p /tmp/rep /tmp/oc
+curl -sL https://registry.npmjs.org/replicad/-/replicad-1.1.0.tgz | tar xz -C /tmp/rep
+curl -sL https://registry.npmjs.org/replicad-opencascadejs/-/replicad-opencascadejs-1.1.0.tgz | tar xz -C /tmp/oc
+python3 tools/vendor.py /tmp/mf/package /tmp/three/package /tmp/rep/package /tmp/oc/package
 ```
 
 ## Credits & licences
@@ -54,3 +59,5 @@ python3 tools/vendor.py /tmp/mf/package /tmp/three/package
 - **HinGen**: MIT, see [LICENSE](LICENSE). The hinge design is inspired by Rohin Gosling's [Parametric Butt Hinge](https://www.thingiverse.com/thing:2187167) for OpenSCAD.
 - **manifold-3d** `vendor/manifold/`: Apache-2.0 ([LICENSE](vendor/manifold/LICENSE)), v3.5.4.
 - **three.js** `vendor/three/`: MIT ([LICENSE](vendor/three/LICENSE)), v0.170.0.
+- **replicad** `vendor/replicad/`: MIT ([LICENSE](vendor/replicad/LICENSE-replicad)), v1.1.0.
+- **replicad-opencascadejs** (OpenCascade build) `vendor/replicad/`: LGPL-2.1 ([LICENSE](vendor/replicad/LICENSE-opencascadejs)), v1.1.0.
